@@ -34,7 +34,7 @@ class Header extends StatelessWidget {
             IconButton(
               icon: const Icon(
                 Icons.menu,
-                color: Colors.grey,
+                color: Colors.black,
                 size: 24,
               ),
               onPressed: onMenuPressed,

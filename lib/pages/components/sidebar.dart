@@ -21,7 +21,7 @@ class Sidebar extends StatelessWidget {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: backgroundColor ?? Color(0xFFF4F6FF),
+        color: backgroundColor ?? const Color(0xFFF4F6FF),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -33,10 +33,8 @@ class Sidebar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header Space
           const SizedBox(height: 20),
-          
-          // Menu Items
+
           _buildMenuItem(
             context,
             'Dashboard',
@@ -51,6 +49,20 @@ class Sidebar extends StatelessWidget {
             Icons.inventory_2,
             1,
           ),
+          _buildMenuItem(
+            context,
+            'Transaksi',
+            Icons.receipt_long_outlined,
+            Icons.receipt_long,
+            2,
+          ),
+          _buildMenuItem(
+            context,
+            'Statistik',
+            Icons.bar_chart_outlined,
+            Icons.bar_chart,
+            3,
+          ),
         ],
       ),
     );
@@ -64,7 +76,7 @@ class Sidebar extends StatelessWidget {
     int index,
   ) {
     final isSelected = selectedIndex == index;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
@@ -75,31 +87,34 @@ class Sidebar extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Container(
             decoration: BoxDecoration(
-              color: isSelected 
-                  ? (selectedColor ?? Theme.of(context).primaryColor.withOpacity(0.1))
+              color: isSelected
+                  ? (selectedColor ??
+                      Theme.of(context).primaryColor.withOpacity(0.1))
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   Icon(
                     isSelected ? activeIcon : icon,
-                    color: isSelected 
+                    color: isSelected
                         ? (selectedColor ?? Theme.of(context).primaryColor)
-                        : Colors.grey[600],
+                        : Colors.black,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     title,
                     style: TextStyle(
-                      color: isSelected 
+                      color: isSelected
                           ? (selectedColor ?? Theme.of(context).primaryColor)
-                          : Colors.grey[700],
+                          : Colors.black,
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],

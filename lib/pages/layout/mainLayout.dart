@@ -1,7 +1,8 @@
-// main_layout.dart
 import 'package:flutter/material.dart';
-import '../screen/dashboard.dart';
-import '../screen/product.dart';
+import 'package:stokmate/pages/screen/transaksi/transaksi.dart';
+import '../screen/dashboard/dashboard.dart';
+import '../screen/produk/product.dart';
+import '../screen/statistik/statistik.dart';
 import '../components/header.dart';
 import '../components/sidebar.dart';
 
@@ -9,21 +10,25 @@ class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
   @override
-  State<MainLayout> createState() => _MainLayoutState();
+  State<MainLayout> createState() => MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class MainLayoutState extends State<MainLayout> {
   int selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Widget> pages = [
     const Dashboard(),
     const Product(),
+    const Transaksi(),
+    Statistik(transaksiList: []),
   ];
 
   final List<String> titles = [
     'Dashboard',
     'Product',
+    'Transaksi',
+    'Statistik'
   ];
 
   @override
@@ -43,7 +48,7 @@ class _MainLayoutState extends State<MainLayout> {
           selectedIndex: selectedIndex,
           onItemSelected: (index) {
             setState(() => selectedIndex = index);
-            Navigator.pop(context); // Tutup drawer setelah pilih menu
+            Navigator.pop(context); 
           },
         ),
       ),
