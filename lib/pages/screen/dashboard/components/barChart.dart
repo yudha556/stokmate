@@ -6,6 +6,7 @@ import '../../../widget/app_colors.dart';
 class SalesBarChart extends StatelessWidget {
   final List<int> sales; 
   final bool showWeekly; 
+  final bool showYearly; // Tambahkan ini
   final String? title;
   final double? height;
 
@@ -13,6 +14,7 @@ class SalesBarChart extends StatelessWidget {
     super.key, 
     required this.sales,
     this.showWeekly = true,
+    this.showYearly = false, // Default false
     this.title,
     this.height,
   });
@@ -41,7 +43,14 @@ class SalesBarChart extends StatelessWidget {
               // tooltipRoundedRadius: 8,
               tooltipPadding: const EdgeInsets.all(8),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                String label = showWeekly ? _getWeekdayLabel(groupIndex) : _getMonthLabel(groupIndex);
+                String label;
+                if (showYearly) {
+                  label = _getYearLabel(groupIndex);
+                } else if (showWeekly) {
+                  label = _getWeekdayLabel(groupIndex);
+                } else {
+                  label = _getMonthLabel(groupIndex);
+                }
                 return BarTooltipItem(
                   '$label\n${_formatCurrency(rod.toY.toInt())}',
                   const TextStyle(
@@ -92,11 +101,14 @@ class SalesBarChart extends StatelessWidget {
                   if (index < 0 || index >= salesData.length) {
                     return const SizedBox.shrink();
                   }
-                  
-                  String label = showWeekly 
-                      ? _getWeekdayShortLabel(index)
-                      : _getMonthShortLabel(index);
-                  
+                  String label;
+                  if (showYearly) {
+                    label = _getYearShortLabel(index);
+                  } else if (showWeekly) {
+                    label = _getWeekdayShortLabel(index);
+                  } else {
+                    label = _getMonthShortLabel(index);
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
@@ -182,6 +194,17 @@ class SalesBarChart extends StatelessWidget {
     );
   }
 
+  // Tambahkan fungsi label tahun
+  String _getYearLabel(int index) {
+    final now = DateTime.now();
+    return (now.year - (4 - index)).toString(); // Untuk 5 tahun terakhir
+  }
+
+  String _getYearShortLabel(int index) {
+    final now = DateTime.now();
+    return (now.year - (4 - index)).toString().substring(2); // Misal '23', '24'
+  }
+
   String _getWeekdayLabel(int index) {
     final weekdays = [
       'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'
@@ -241,6 +264,7 @@ class SalesChartCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool showWeekly;
+  final bool showYearly; // Tambahkan ini
   final VoidCallback? onViewMore;
 
   const SalesChartCard({
@@ -248,7 +272,8 @@ class SalesChartCard extends StatelessWidget {
     required this.sales,
     required this.title,
     required this.subtitle,
-    this.showWeekly = true,
+    required this.showWeekly,
+    this.showYearly = false, // Default false
     this.onViewMore,
   });
 
@@ -374,6 +399,7 @@ class SalesChartCard extends StatelessWidget {
               child: SalesBarChart(
                 sales: sales,
                 showWeekly: showWeekly,
+                showYearly: showYearly, // Teruskan ke SalesBarChart
                 height: 200,
               ),
             ),

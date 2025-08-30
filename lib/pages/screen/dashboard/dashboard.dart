@@ -1,7 +1,6 @@
 // pages/dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:stokmate/pages/screen/statistik/statistik.dart';
 import '../../../models/barang.dart';
 import '../../../models/transaksi.dart';
 import '../../widget/app_colors.dart';
@@ -10,7 +9,7 @@ import '../../widget/empty_state.dart';
 import '../../widget/modern_snackbar.dart';
 import 'components/barChart.dart';
 import '../../layout/mainLayout.dart';
-// Make sure MainLayoutState is imported from mainLayout.dart
+import '../produk/product.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
@@ -27,13 +26,14 @@ class Dashboard extends StatelessWidget {
             builder: (context, Box<Transaksi> transaksiBox, _) {
               final barangList = barangBox.values.toList();
               final transaksiList = transaksiBox.values.toList();
-              
+
               // Jika tidak ada data sama sekali
               if (barangList.isEmpty && transaksiList.isEmpty) {
                 return EmptyState(
                   icon: Icons.dashboard_outlined,
                   title: "Dashboard Kosong",
-                  subtitle: "Tambahkan produk dan transaksi untuk melihat ringkasan bisnis Anda",
+                  subtitle:
+                      "Tambahkan produk dan transaksi untuk melihat ringkasan bisnis Anda",
                   buttonText: "Tambah Produk",
                   onButtonPressed: () => _navigateToProducts(context),
                 );
@@ -47,19 +47,23 @@ class Dashboard extends StatelessWidget {
                     // Header Section
                     // _buildWelcomeSection(),
                     const SizedBox(height: 24),
-                    
+
                     // Main Stats Grid
                     _buildMainStatsGrid(barangList, transaksiList),
                     const SizedBox(height: 24),
-                    
+
                     // Sales Chart Section
                     _buildSalesChartSection(context, transaksiList),
                     const SizedBox(height: 24),
-                    
+
                     // Additional Stats
-                    _buildAdditionalStats(barangList, transaksiList),
+                    _buildAdditionalStats(
+                      context,
+                      barangList,
+                      transaksiList,
+                    ), // tambahkan context di sini
                     const SizedBox(height: 24),
-                    
+
                     // Recent Activity
                     _buildRecentActivity(transaksiList),
                   ],
@@ -76,7 +80,7 @@ class Dashboard extends StatelessWidget {
   //   final now = DateTime.now();
   //   final hour = now.hour;
   //   String greeting = "Selamat Pagi";
-    
+
   //   if (hour >= 12 && hour < 15) {
   //     greeting = "Selamat Siang";
   //   } else if (hour >= 15 && hour < 18) {
@@ -138,18 +142,26 @@ class Dashboard extends StatelessWidget {
   //   );
   // }
 
-  Widget _buildMainStatsGrid(List<Barang> barangList, List<Transaksi> transaksiList) {
+  Widget _buildMainStatsGrid(
+    List<Barang> barangList,
+    List<Transaksi> transaksiList,
+  ) {
     // Calculate stats
     final totalProduk = barangList.length;
     final totalStok = barangList.fold(0, (sum, item) => sum + item.stok);
-    final totalPenjualan = transaksiList.fold(0, (sum, item) => sum + item.totalHarga);
+    final totalPenjualan = transaksiList.fold(
+      0,
+      (sum, item) => sum + item.totalHarga,
+    );
     final totalTransaksi = transaksiList.length;
 
     // Calculate profit (simplified - assuming all transactions are sales)
     int totalProfit = 0;
     for (var transaksi in transaksiList) {
       // Find the product to get buy price
-      final barang = barangList.where((b) => b.nama == transaksi.namaBarang).firstOrNull;
+      final barang = barangList
+          .where((b) => b.nama == transaksi.namaBarang)
+          .firstOrNull;
       if (barang != null) {
         final profit = (barang.hargaJual - barang.hargaBeli) * transaksi.jumlah;
         totalProfit += profit;
@@ -168,37 +180,50 @@ class Dashboard extends StatelessWidget {
           value: _formatCurrency(totalPenjualan),
           icon: Icons.attach_money,
           color: AppColors.successGreen,
-          onTap: () => _showDetailStats("Penjualan", "Total penjualan hari ini: ${_formatCurrency(totalPenjualan)}"),
+          onTap: () => _showDetailStats(
+            "Penjualan",
+            "Total penjualan hari ini: ${_formatCurrency(totalPenjualan)}",
+          ),
         ),
         StatsCard(
           title: "Laba Bersih",
           value: _formatCurrency(totalProfit),
           icon: Icons.trending_up,
           color: AppColors.primaryPurple,
-          onTap: () => _showDetailStats("Laba", "Laba bersih: ${_formatCurrency(totalProfit)}"),
+          onTap: () => _showDetailStats(
+            "Laba",
+            "Laba bersih: ${_formatCurrency(totalProfit)}",
+          ),
         ),
         StatsCard(
           title: "Total Produk",
           value: totalProduk.toString(),
           icon: Icons.inventory_2,
           color: Colors.orange,
-          onTap: () => _showDetailStats("Produk", "Total produk terdaftar: $totalProduk"),
+          onTap: () => _showDetailStats(
+            "Produk",
+            "Total produk terdaftar: $totalProduk",
+          ),
         ),
         StatsCard(
           title: "Total Stok",
           value: totalStok.toString(),
           icon: Icons.warehouse,
           color: Colors.blue,
-          onTap: () => _showDetailStats("Stok", "Total stok tersedia: $totalStok"),
+          onTap: () =>
+              _showDetailStats("Stok", "Total stok tersedia: $totalStok"),
         ),
       ],
     );
   }
 
-  Widget _buildSalesChartSection(BuildContext context, List<Transaksi> transaksiList) {
+  Widget _buildSalesChartSection(
+    BuildContext context,
+    List<Transaksi> transaksiList,
+  ) {
     // Generate sales data for last 7 days
     final salesData = _generateWeeklySalesData(transaksiList);
-    
+
     return SalesChartCard(
       title: "Penjualan Mingguan",
       subtitle: "Performa 7 hari terakhir",
@@ -208,13 +233,20 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildAdditionalStats(List<Barang> barangList, List<Transaksi> transaksiList) {
+  Widget _buildAdditionalStats(
+    BuildContext context,
+    List<Barang> barangList,
+    List<Transaksi> transaksiList,
+  ) {
     final lowStockItems = barangList.where((item) => item.stok < 10).length;
-    final todayTransactions = transaksiList.where((t) => 
-      t.tanggal.day == DateTime.now().day &&
-      t.tanggal.month == DateTime.now().month &&
-      t.tanggal.year == DateTime.now().year
-    ).length;
+    final todayTransactions = transaksiList
+        .where(
+          (t) =>
+              t.tanggal.day == DateTime.now().day &&
+              t.tanggal.month == DateTime.now().month &&
+              t.tanggal.year == DateTime.now().year,
+        )
+        .length;
 
     return Row(
       children: [
@@ -224,7 +256,10 @@ class Dashboard extends StatelessWidget {
             value: lowStockItems.toString(),
             icon: Icons.warning_amber,
             color: AppColors.warningRed,
-            onTap: () => _showLowStockItems(barangList),
+            onTap: () => _showLowStockItems(
+              context,
+              barangList,
+            ), // context sudah tersedia
           ),
         ),
         const SizedBox(width: 16),
@@ -242,10 +277,11 @@ class Dashboard extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(List<Transaksi> transaksiList) {
-    final recentTransactions = transaksiList
-        .where((t) => DateTime.now().difference(t.tanggal).inDays <= 7)
-        .toList()
-      ..sort((a, b) => b.tanggal.compareTo(a.tanggal));
+    final recentTransactions =
+        transaksiList
+            .where((t) => DateTime.now().difference(t.tanggal).inDays <= 7)
+            .toList()
+          ..sort((a, b) => b.tanggal.compareTo(a.tanggal));
 
     if (recentTransactions.isEmpty) {
       return Container(
@@ -264,11 +300,7 @@ class Dashboard extends StatelessWidget {
         child: const Center(
           child: Column(
             children: [
-              Icon(
-                Icons.history,
-                size: 48,
-                color: AppColors.lightText,
-              ),
+              Icon(Icons.history, size: 48, color: AppColors.lightText),
               SizedBox(height: 8),
               Text(
                 "Belum ada transaksi terbaru",
@@ -323,9 +355,9 @@ class Dashboard extends StatelessWidget {
               ],
             ),
           ),
-          ...recentTransactions.take(5).map((transaksi) => 
-            _buildTransactionItem(transaksi)
-          ),
+          ...recentTransactions
+              .take(5)
+              .map((transaksi) => _buildTransactionItem(transaksi)),
           if (recentTransactions.length > 5)
             Padding(
               padding: const EdgeInsets.all(20),
@@ -400,26 +432,41 @@ class Dashboard extends StatelessWidget {
 
   // Helper methods
   String _formatCurrency(int amount) {
-    return "Rp${amount.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    )}";
+    return "Rp${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}";
   }
 
   String _formatDate(DateTime date) {
-    final days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    final months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    final days = [
+      'Minggu',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
     ];
-    
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
     return "${days[date.weekday % 7]}, ${date.day} ${months[date.month - 1]} ${date.year}";
   }
 
   String _formatRelativeTime(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays > 0) {
       return "${difference.inDays} hari lalu";
     } else if (difference.inHours > 0) {
@@ -434,38 +481,79 @@ class Dashboard extends StatelessWidget {
   List<int> _generateWeeklySalesData(List<Transaksi> transaksiList) {
     final now = DateTime.now();
     final weeklyData = List.filled(7, 0);
-    
+
     for (int i = 0; i < 7; i++) {
       final date = now.subtract(Duration(days: 6 - i));
-      final dayTransactions = transaksiList.where((t) =>
-        t.tanggal.day == date.day &&
-        t.tanggal.month == date.month &&
-        t.tanggal.year == date.year
+      final dayTransactions = transaksiList.where(
+        (t) =>
+            t.tanggal.day == date.day &&
+            t.tanggal.month == date.month &&
+            t.tanggal.year == date.year,
       );
-      
+
       weeklyData[i] = dayTransactions.fold(0, (sum, t) => sum + t.totalHarga);
     }
-    
+
     return weeklyData;
   }
 
   // Action methods
-  void _navigateToProducts(BuildContext context) {
-    ModernSnackBar.show(
-      context: context,
-      message: "Navigasi ke halaman produk",
-      type: SnackBarType.info,
-    );
+void _navigateToProducts(BuildContext context) {
+  final mainLayoutState = context.findAncestorStateOfType<MainLayoutState>();
+  if (mainLayoutState != null) {
+    mainLayoutState.setState(() {
+      mainLayoutState.selectedIndex = 1; // 1 = halaman produk
+    });
   }
+}
 
   void _showDetailStats(String title, String message) {
     // This would show a detailed stats dialog
   }
 
-  void _showLowStockItems(List<Barang> barangList) {
-    final lowStockItems = barangList.where((item) => item.stok < 10).toList();
-    // Show dialog with low stock items
-  }
+void _showLowStockItems(BuildContext context, List<Barang> barangList) {
+  final lowStockItems = barangList.where((item) => item.stok < 10).toList();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Barang Stok Rendah'),
+      content: lowStockItems.isEmpty
+          ? const Text('Tidak ada barang dengan stok rendah.')
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...lowStockItems.map((item) => Text('• ${item.nama} (Stok: ${item.stok})')),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.inventory_2_outlined),
+                  label: const Text('Lihat Semua Produk'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    final mainLayoutState = context.findAncestorStateOfType<MainLayoutState>();
+                    if (mainLayoutState != null) {
+                      mainLayoutState.setState(() {
+                        mainLayoutState.selectedIndex = 1; // 1 = halaman produk
+                      });
+                    }
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Tutup'),
+        ),
+      ],
+    ),
+  );
+}
 
   void _showTodayTransactions(List<Transaksi> transaksiList) {
     // Show today's transactions
@@ -475,16 +563,16 @@ class Dashboard extends StatelessWidget {
     // Navigate to transactions page
   }
 
-void _showDetailedSalesAnalysis(BuildContext context, List<Transaksi> transaksiList) {
-  final mainLayoutState = context.findAncestorStateOfType<MainLayoutState>();
+  void _showDetailedSalesAnalysis(
+    BuildContext context,
+    List<Transaksi> transaksiList,
+  ) {
+    final mainLayoutState = context.findAncestorStateOfType<MainLayoutState>();
 
-  if (mainLayoutState != null) {
-    mainLayoutState.setState(() {
-      mainLayoutState.selectedIndex = 3; // pindah ke halaman Statistik
-    });
+    if (mainLayoutState != null) {
+      mainLayoutState.setState(() {
+        mainLayoutState.selectedIndex = 3; // pindah ke halaman Statistik
+      });
+    }
   }
-}
-
-
-
 }
