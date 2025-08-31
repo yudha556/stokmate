@@ -142,80 +142,82 @@ class Dashboard extends StatelessWidget {
   //   );
   // }
 
-  Widget _buildMainStatsGrid(
-    List<Barang> barangList,
-    List<Transaksi> transaksiList,
-  ) {
-    // Calculate stats
-    final totalProduk = barangList.length;
-    final totalStok = barangList.fold(0, (sum, item) => sum + item.stok);
-    final totalPenjualan = transaksiList.fold(
-      0,
-      (sum, item) => sum + item.totalHarga,
-    );
-    final totalTransaksi = transaksiList.length;
+ 
+Widget _buildMainStatsGrid(
+  List<Barang> barangList,
+  List<Transaksi> transaksiList,
+) {
+  // Calculate stats
+  final totalProduk = barangList.length;
+  final totalStok = barangList.fold(0, (sum, item) => sum + item.stok);
+  final totalPenjualan = transaksiList.fold(
+    0,
+    (sum, item) => sum + item.totalHarga,
+  );
+  final totalTransaksi = transaksiList.length;
 
-    // Calculate profit (simplified - assuming all transactions are sales)
-    int totalProfit = 0;
-    for (var transaksi in transaksiList) {
-      // Find the product to get buy price
-      final barang = barangList
-          .where((b) => b.nama == transaksi.namaBarang)
-          .firstOrNull;
-      if (barang != null) {
-        final profit = (barang.hargaJual - barang.hargaBeli) * transaksi.jumlah;
-        totalProfit += profit;
-      }
+  // Calculate profit (simplified - assuming all transactions are sales)
+  int totalProfit = 0;
+  for (var transaksi in transaksiList) {
+    // Find the product to get buy price
+    final barang = barangList
+        .where((b) => b.nama == transaksi.namaBarang)
+        .firstOrNull;
+    if (barang != null) {
+      final profit = (barang.hargaJual - barang.hargaBeli) * transaksi.jumlah;
+      totalProfit += profit;
     }
-
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        StatsCard(
-          title: "Total Penjualan",
-          value: _formatCurrency(totalPenjualan),
-          icon: Icons.attach_money,
-          color: AppColors.successGreen,
-          onTap: () => _showDetailStats(
-            "Penjualan",
-            "Total penjualan hari ini: ${_formatCurrency(totalPenjualan)}",
-          ),
-        ),
-        StatsCard(
-          title: "Laba Bersih",
-          value: _formatCurrency(totalProfit),
-          icon: Icons.trending_up,
-          color: AppColors.primaryPurple,
-          onTap: () => _showDetailStats(
-            "Laba",
-            "Laba bersih: ${_formatCurrency(totalProfit)}",
-          ),
-        ),
-        StatsCard(
-          title: "Total Produk",
-          value: totalProduk.toString(),
-          icon: Icons.inventory_2,
-          color: Colors.orange,
-          onTap: () => _showDetailStats(
-            "Produk",
-            "Total produk terdaftar: $totalProduk",
-          ),
-        ),
-        StatsCard(
-          title: "Total Stok",
-          value: totalStok.toString(),
-          icon: Icons.warehouse,
-          color: Colors.blue,
-          onTap: () =>
-              _showDetailStats("Stok", "Total stok tersedia: $totalStok"),
-        ),
-      ],
-    );
   }
+
+  return GridView.count(
+    crossAxisCount: 2,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    childAspectRatio: 1.1, // Sesuaikan rasio
+    children: [
+      StatsCard(
+        title: "Total Penjualan",
+        value: _formatCompactCurrency(totalPenjualan),
+        icon: Icons.attach_money,
+        color: AppColors.successGreen,
+        onTap: () => _showDetailStats(
+          "Penjualan",
+          "Total penjualan: ${_formatCurrency(totalPenjualan)}",
+        ),
+      ),
+      StatsCard(
+        title: "Laba Bersih",
+        value: _formatCompactCurrency(totalProfit),
+        icon: Icons.trending_up,
+        color: AppColors.primaryPurple,
+        onTap: () => _showDetailStats(
+          "Laba",
+          "Laba bersih: ${_formatCurrency(totalProfit)}",
+        ),
+      ),
+      StatsCard(
+        title: "Total Produk",
+        value: _formatCompactNumber(totalProduk),
+        icon: Icons.inventory_2,
+        color: Colors.orange,
+        onTap: () => _showDetailStats(
+          "Produk",
+          "Total produk terdaftar: $totalProduk",
+        ),
+      ),
+      StatsCard(
+        title: "Total Stok",
+        value: _formatCompactNumber(totalStok),
+        icon: Icons.warehouse,
+        color: Colors.blue,
+        onTap: () =>
+            _showDetailStats("Stok", "Total stok tersedia: $totalStok"),
+      ),
+    ],
+  );
+}
 
   Widget _buildSalesChartSection(
     BuildContext context,
@@ -430,10 +432,34 @@ class Dashboard extends StatelessWidget {
     );
   }
 
-  // Helper methods
-  String _formatCurrency(int amount) {
-    return "Rp${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}";
+String _formatCompactCurrency(int amount) {
+  if (amount >= 1000000000) {
+    return "Rp${(amount / 1000000000).toStringAsFixed(1)}M";
+  } else if (amount >= 1000000) {
+    return "Rp${(amount / 1000000).toStringAsFixed(1)}Jt";
+  } else if (amount >= 1000) {
+    return "Rp${(amount / 1000).toStringAsFixed(1)}K";
+  } else {
+    return "Rp$amount";
   }
+}
+
+String _formatCompactNumber(int number) {
+  if (number >= 1000000000) {
+    return "${(number / 1000000000).toStringAsFixed(1)}M";
+  } else if (number >= 1000000) {
+    return "${(number / 1000000).toStringAsFixed(1)}Jt";
+  } else if (number >= 1000) {
+    return "${(number / 1000).toStringAsFixed(1)}K";
+  } else {
+    return number.toString();
+  }
+}
+
+// Helper method untuk format currency lengkap (untuk detail)
+String _formatCurrency(int amount) {
+  return "Rp${amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}";
+}
 
   String _formatDate(DateTime date) {
     final days = [

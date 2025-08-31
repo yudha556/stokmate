@@ -20,27 +20,34 @@ class MainLayoutState extends State<MainLayout> {
   final List<Widget> pages = [
     const Dashboard(),
     const Product(),
-    const Transaksi(),
-    Statistik(transaksiList: []),
+    const InputTransaksiPage(),
+    const Statistik(),
   ];
 
   final List<String> titles = [
     'Dashboard',
     'Product',
     'Transaksi',
-    'Statistik'
+    'Statistik',
   ];
 
   @override
   Widget build(BuildContext context) {
+    // Dapatkan tinggi status bar
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: Header(
-          onMenuPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-          },
+        // Tambahkan statusBarHeight ke preferredSize
+        preferredSize: Size.fromHeight(60 + statusBarHeight),
+        child: Container(
+          padding: EdgeInsets.only(top: statusBarHeight),
+          child: Header(
+            onMenuPressed: () {
+              _scaffoldKey.currentState?.openDrawer();
+            },
+          ),
         ),
       ),
       drawer: Drawer(
@@ -48,11 +55,11 @@ class MainLayoutState extends State<MainLayout> {
           selectedIndex: selectedIndex,
           onItemSelected: (index) {
             setState(() => selectedIndex = index);
-            Navigator.pop(context); 
+            Navigator.pop(context);
           },
         ),
       ),
-      body: pages[selectedIndex],
+      body: SafeArea(child: pages[selectedIndex]),
     );
   }
 }

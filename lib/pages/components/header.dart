@@ -41,16 +41,28 @@ class Header extends StatelessWidget {
               tooltip: 'Menu',
             ),
             
+            // Brand Text - StokMate
+            const SizedBox(width: 8),
+            const Text(
+              'StokMate',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                letterSpacing: -0.5,
+              ),
+            ),
+            
             const Spacer(),
             
             CircleAvatar(
               radius: 18,
+              backgroundImage: AssetImage('assets/icon/icon.png'),
               backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(
-                Icons.storefront,
-                color: Colors.white,
-                size: 20,
-              ),
+              onBackgroundImageError: (exception, stackTrace) {
+                // Jika gambar tidak ditemukan, akan menggunakan backgroundColor
+              },
+              child: Container(), // Empty container, gambar akan ditampilkan sebagai background
             ),
           ],
         ),

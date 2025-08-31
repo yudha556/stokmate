@@ -274,133 +274,134 @@ class Product extends StatelessWidget {
   }
 
   void _showProductForm(BuildContext context, Box<Barang> box, {int? index, Barang? barang}) {
-    final nameController = TextEditingController(text: barang?.nama ?? "");
-    final stokController = TextEditingController(text: barang?.stok.toString() ?? "");
-    final hargaBeliController = TextEditingController(text: barang?.hargaBeli.toString() ?? "");
-    final hargaJualController = TextEditingController(text: barang?.hargaJual.toString() ?? "");
-    final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController(text: barang?.nama ?? "");
+  final stokController = TextEditingController(text: barang?.stok.toString() ?? "");
+  final hargaBeliController = TextEditingController(text: barang?.hargaBeli.toString() ?? "");
+  final hargaJualController = TextEditingController(text: barang?.hargaJual.toString() ?? "");
+  final formKey = GlobalKey<FormState>();
 
-    ModernDialog.show(
-      context: context,
-      title: barang == null ? "Tambah Produk" : "Edit Produk",
-      icon: barang == null ? Icons.add : Icons.edit,
-      content: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ModernTextField(
-              controller: nameController,
-              label: "Nama Produk",
-              icon: Icons.inventory_2_outlined,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Nama produk tidak boleh kosong";
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            ModernTextField(
-              controller: stokController,
-              label: "Stok",
-              icon: Icons.numbers,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Stok tidak boleh kosong";
-                }
-                if (int.tryParse(value) == null || int.parse(value) < 0) {
-                  return "Stok harus berupa angka positif";
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            ModernTextField(
-              controller: hargaBeliController,
-              label: "Harga Beli",
-              icon: Icons.shopping_cart_outlined,
-              keyboardType: TextInputType.number,
-              prefixText: "Rp ",
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Harga beli tidak boleh kosong";
-                }
-                if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                  return "Harga beli harus berupa angka positif";
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-            ModernTextField(
-              controller: hargaJualController,
-              label: "Harga Jual",
-              icon: Icons.sell_outlined,
-              keyboardType: TextInputType.number,
-              prefixText: "Rp ",
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Harga jual tidak boleh kosong";
-                }
-                if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                  return "Harga jual harus berupa angka positif";
-                }
-                return null;
-              },
-            ),
-          ],
+  ModernDialog.show(
+    context: context,
+    title: barang == null ? "Tambah Produk" : "Edit Produk",
+    icon: barang == null ? Icons.add : Icons.edit,
+    scrollable: true, // Aktifkan scroll
+    content: Form(
+      key: formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ModernTextField(
+            controller: nameController,
+            label: "Nama Produk",
+            icon: Icons.inventory_2_outlined,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Nama produk tidak boleh kosong";
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernTextField(
+            controller: stokController,
+            label: "Stok",
+            icon: Icons.numbers,
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Stok tidak boleh kosong";
+              }
+              if (int.tryParse(value) == null || int.parse(value) < 0) {
+                return "Stok harus berupa angka positif";
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernTextField(
+            controller: hargaBeliController,
+            label: "Harga Beli",
+            icon: Icons.shopping_cart_outlined,
+            keyboardType: TextInputType.number,
+            prefixText: "Rp ",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Harga beli tidak boleh kosong";
+              }
+              if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                return "Harga beli harus berupa angka positif";
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          ModernTextField(
+            controller: hargaJualController,
+            label: "Harga Jual",
+            icon: Icons.sell_outlined,
+            keyboardType: TextInputType.number,
+            prefixText: "Rp ",
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "Harga jual tidak boleh kosong";
+              }
+              if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                return "Harga jual harus berupa angka positif";
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text(
+          "Batal",
+          style: TextStyle(color: AppColors.lightText),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            "Batal",
-            style: TextStyle(color: AppColors.lightText),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (formKey.currentState!.validate()) {
-              final newBarang = Barang(
-                nama: nameController.text,
-                stok: int.parse(stokController.text),
-                hargaBeli: int.parse(hargaBeliController.text),
-                hargaJual: int.parse(hargaJualController.text),
-              );
+      ElevatedButton(
+        onPressed: () {
+          if (formKey.currentState!.validate()) {
+            final newBarang = Barang(
+              nama: nameController.text,
+              stok: int.parse(stokController.text),
+              hargaBeli: int.parse(hargaBeliController.text),
+              hargaJual: int.parse(hargaJualController.text),
+            );
 
-              if (index != null) {
-                // Edit existing
-                box.putAt(index, newBarang);
-                ModernSnackBar.show(
-                  context: context,
-                  message: "Produk berhasil diupdate",
-                  type: SnackBarType.success,
-                );
-              } else {
-                // Add new
-                box.add(newBarang);
-                ModernSnackBar.show(
-                  context: context,
-                  message: "Produk berhasil ditambahkan",
-                  type: SnackBarType.success,
-                );
-              }
-              
-              Navigator.of(context).pop();
+            if (index != null) {
+              // Edit existing
+              box.putAt(index, newBarang);
+              ModernSnackBar.show(
+                context: context,
+                message: "Produk berhasil diupdate",
+                type: SnackBarType.success,
+              );
+            } else {
+              // Add new
+              box.add(newBarang);
+              ModernSnackBar.show(
+                context: context,
+                message: "Produk berhasil ditambahkan",
+                type: SnackBarType.success,
+              );
             }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryPurple,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-          child: Text(barang == null ? "Tambah" : "Simpan"),
+            
+            Navigator.of(context).pop();
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryPurple,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
-      ],
-    );
-  }
+        child: Text(barang == null ? "Tambah" : "Simpan"),
+      ),
+    ],
+  );
+}
 }
